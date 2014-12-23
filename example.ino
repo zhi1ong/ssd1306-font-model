@@ -6,6 +6,9 @@
 #define DC 44
 #define RES 45
 
+int currentLine = 0;
+
+//发送命令到i2c总线
 void send_cmd(unsigned char COM) {
   Wire.beginTransmission(iic_bus);
   Wire.write(0x00);
@@ -13,6 +16,7 @@ void send_cmd(unsigned char COM) {
   Wire.endTransmission();
 }
 
+//发送数据到i2c总线
 void send_data(unsigned char DATA) {
   Wire.beginTransmission(iic_bus);
   Wire.write(0x40);
@@ -20,6 +24,7 @@ void send_data(unsigned char DATA) {
   Wire.endTransmission();
 }
 
+//初始化oled屏幕
 void init_oled() {
   digitalWrite(RES,HIGH);   delay(100);
   digitalWrite(RES,LOW);    delay(100);
@@ -52,6 +57,7 @@ void init_oled() {
   clean_screen(0x00);
 }
 
+//清全屏
 void clean_screen(unsigned char dat) {
   unsigned char i,j;
   send_cmd(0x00);//set lower column address
@@ -67,12 +73,65 @@ void clean_screen(unsigned char dat) {
   }
 }
 
-void set_ascii7x8(byte page,byte x,byte ascii) {
-  send_cmd(0xB0+page);//set page address
-  send_cmd(0x00+x&0x0f);//set lower column address
-  send_cmd(0x10+x/16);//set higher column address
+//在指定位置写入一个char
+//@param line : 行数
+//@param page : 行数
+void set_ascii7x8(byte line,byte bit,byte ascii) {
+  send_cmd(0xB0+line);//set line address
+  send_cmd(0x00+bit&0x0f);//set lower column address
+  send_cmd(0x10+bit/16);//set higher column address
   for(byte i=0;i<7;i++)
   send_data(ASCII7x8[ascii*7+i]);
+}
+
+//打印一行，超出一行的不显示
+//@param input : 输入
+//@changeLine : 是否换行打印
+void print2screen(String input, bool changeLine = true) {
+  int input_Length = input.length();
+  char tempchar[input_Length];
+  if (changeLine == true)
+  {
+    if (currentLine >= 7)
+      {
+        input.toCharArray(tempchar, input_Length);
+        for (int i = 0; i < input_Length; i++)
+        {
+          if (i <= 17)
+          {
+            set_ascii7x8(currentLine,i*7,tempchar[i]);
+          } else {
+            return;
+          }
+          //i <= 17 ? set_ascii7x8(currentLine,i*7,tempchar[i]) : break;
+        }
+      } else {
+        input.toCharArray(tempchar, input_Length);
+        for (int i = 0; i < input_Length; i++)
+        {
+          if (i <= 17)
+          {
+            set_ascii7x8(currentLine,i*7,tempchar[i]);
+          } else {
+            return;
+          }
+          //i <= 17 ? set_ascii7x8(currentLine,i*7,tempchar[i]) : break;
+        }
+        currentLine++;
+      }
+  } else {
+    input.toCharArray(tempchar, input_Length);
+    for (int i = 0; i < input_Length; i++)
+    {
+      if (i <= 17)
+          {
+            set_ascii7x8(currentLine,i*7,tempchar[i]);
+          } else {
+            return;
+          }
+      //i <= 17 ? set_ascii7x8(currentLine,i*7,tempchar[i]) : break;
+    }
+  }
 }
 
 void setup() {
@@ -86,24 +145,11 @@ void setup() {
   analogReadResolution(12); 
   delay(50);
   
-  int i;
-  int j = 0;
-  int k = 0;
-  for(i='A';i<='Z';i++) {
-    set_ascii7x8(k,j,i);
-    j += 7;
-    if (j >= 121) {
-      k++;
-      j = 0;
-    }
-  }
-  
-  set_ascii7x8(4,0,'+');
-  set_ascii7x8(4,7,'-');
-  set_ascii7x8(4,14,'.');
-  set_ascii7x8(5,0,'[');
-  set_ascii7x8(5,7,']');
-  
+  print2screen("[+] I LIKE APPLE.");
+  print2screen("[+] I LIKE BANANA.");
+  print2screen("[+] I DO NOT LIKE APPLE.");
+  print2screen("[+] I DO NOT LIKE BANANA.", false);
+
 }
 
 void loop() {
