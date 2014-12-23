@@ -26,9 +26,9 @@ void send_data(unsigned char DATA) {
 
 //初始化oled屏幕
 void init_oled() {
-  digitalWrite(RES,HIGH);   delay(100);
-  digitalWrite(RES,LOW);    delay(100);
-  digitalWrite(RES,HIGH);   delay(100);
+  digitalWrite(RES, HIGH);   delay(100);
+  digitalWrite(RES, LOW);    delay(100);
+  digitalWrite(RES, HIGH);   delay(100);
   send_cmd(0XAE);//display off
   send_cmd(0X00);//set lower column address
   send_cmd(0X10);//set higher column address
@@ -59,15 +59,15 @@ void init_oled() {
 
 //清全屏
 void clean_screen(unsigned char dat) {
-  unsigned char i,j;
+  unsigned char i, j;
   send_cmd(0x00);//set lower column address
   send_cmd(0x10);//set higher column address
   send_cmd(0xB0);//set page address
-  for(j=0;j<8;j++) {
-    send_cmd(0xB0+j);//set page address
+  for (j = 0; j < 8; j++) {
+    send_cmd(0xB0 + j); //set page address
     send_cmd(0x00);//set lower column address
     send_cmd(0x10);//set higher column address
-    for(i=0;i<128;i++) {
+    for (i = 0; i < 128; i++) {
       send_data(dat);
     }
   }
@@ -76,45 +76,48 @@ void clean_screen(unsigned char dat) {
 //在指定位置写入一个char
 //@param line : 行数
 //@param page : 行数
-void set_ascii7x8(byte line,byte bit,byte ascii) {
-  send_cmd(0xB0+line);//set line address
-  send_cmd(0x00+bit&0x0f);//set lower column address
-  send_cmd(0x10+bit/16);//set higher column address
-  for(byte i=0;i<7;i++)
-  send_data(ASCII7x8[ascii*7+i]);
+void set_ascii7x8(byte line, byte bit, byte ascii) {
+  send_cmd(0xB0 + line); //set line address
+  send_cmd(0x00 + bit & 0x0f); //set lower column address
+  send_cmd(0x10 + bit / 16); //set higher column address
+  for (byte i = 0; i < 7; i++)
+    send_data(ASCII7x8[ascii * 7 + i]);
 }
 
 //打印一行到指定行
 //@param input : 输入
 //@linenum : 行号
-void print2screenByline(char * input, int linenum) {
-  int i=0;
-  while(*input!='\0' && i < 122)
+void print2screenByline(String input, int linenum) {
+  int input_Length = input.length() + 1, i = 0;
+  char tempchar[input_Length];
+  char *p = tempchar;
+  input.toCharArray(tempchar, input_Length);
+  while (*p != '\0' && i < 122)
   {
-    switch (*input) {
+    switch (*p) {
       case ' ':
-        i+=3;
-        input++;
+        i += 3;
+        p++;
         break;
       default :
-        set_ascii7x8(linenum,i,*input++);
-        i+=7;
+        set_ascii7x8(linenum, i, *p++);
+        i += 7;
     }
   }
 }
 
 void setup() {
-  Serial.begin(115200);
-  pinMode(RES,OUTPUT);//RES
-  pinMode(DC,OUTPUT);//D/C#
-  digitalWrite(DC,LOW);
+  Serial.begin(9600);
+  pinMode(RES, OUTPUT); //RES
+  pinMode(DC, OUTPUT); //D/C#
+  digitalWrite(DC, LOW);
   Wire.begin();
   init_oled();
   mpr121Init();
-  analogReadResolution(12); 
+  analogReadResolution(12);
   delay(50);
 
-  print2screenBychar("[+] I LIKE APPLHJSHJFDE.", 1);
+  print2screenByline((String)"[+] I LIKE " + (String)"APPLE.", 1);
 }
 
 void loop() {
