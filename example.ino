@@ -84,52 +84,21 @@ void set_ascii7x8(byte line,byte bit,byte ascii) {
   send_data(ASCII7x8[ascii*7+i]);
 }
 
-//打印一行，超出一行的不显示
+//打印一行到指定行
 //@param input : 输入
-//@changeLine : 是否换行打印
-void print2screen(String input, bool changeLine = true) {
-  int input_Length = input.length();
-  char tempchar[input_Length];
-  if (changeLine == true)
+//@linenum : 行号
+void print2screenByline(char * input, int linenum) {
+  int i=0;
+  while(*input!='\0' && i < 122)
   {
-    if (currentLine >= 7)
-      {
-        input.toCharArray(tempchar, input_Length);
-        for (int i = 0; i < input_Length; i++)
-        {
-          if (i <= 17)
-          {
-            set_ascii7x8(currentLine,i*7,tempchar[i]);
-          } else {
-            return;
-          }
-          //i <= 17 ? set_ascii7x8(currentLine,i*7,tempchar[i]) : break;
-        }
-      } else {
-        input.toCharArray(tempchar, input_Length);
-        for (int i = 0; i < input_Length; i++)
-        {
-          if (i <= 17)
-          {
-            set_ascii7x8(currentLine,i*7,tempchar[i]);
-          } else {
-            return;
-          }
-          //i <= 17 ? set_ascii7x8(currentLine,i*7,tempchar[i]) : break;
-        }
-        currentLine++;
-      }
-  } else {
-    input.toCharArray(tempchar, input_Length);
-    for (int i = 0; i < input_Length; i++)
-    {
-      if (i <= 17)
-          {
-            set_ascii7x8(currentLine,i*7,tempchar[i]);
-          } else {
-            return;
-          }
-      //i <= 17 ? set_ascii7x8(currentLine,i*7,tempchar[i]) : break;
+    switch (*input) {
+      case ' ':
+        i+=3;
+        input++;
+        break;
+      default :
+        set_ascii7x8(linenum,i,*input++);
+        i+=7;
     }
   }
 }
@@ -144,12 +113,8 @@ void setup() {
   mpr121Init();
   analogReadResolution(12); 
   delay(50);
-  
-  print2screen("[+] I LIKE APPLE.");
-  print2screen("[+] I LIKE BANANA.");
-  print2screen("[+] I DO NOT LIKE APPLE.");
-  print2screen("[+] I DO NOT LIKE BANANA.", false);
 
+  print2screenBychar("[+] I LIKE APPLHJSHJFDE.", 1);
 }
 
 void loop() {
