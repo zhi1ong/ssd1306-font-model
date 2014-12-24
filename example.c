@@ -99,9 +99,17 @@ void print2screenByline(String input, int linenum) {
         i += 3;
         p++;
         break;
+      case '.':
+        set_ascii7x8(linenum, i, *p++);
+        i += 3;
+        break;
+      case ':':
+        set_ascii7x8(linenum, i, *p++);
+        i += 3;
+        break;
       default :
         set_ascii7x8(linenum, i, *p++);
-        i += 7;
+        i += 6;
     }
   }
 }
